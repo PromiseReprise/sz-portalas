@@ -1,0 +1,251 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels.Skelbimai
+
+@model Skelbimai
+
+@{
+	ViewData["Title"] = "Skelbimai";
+}
+
+<style>
+	.modal-dialog {
+		max-width: none;
+		width: 40%;
+	}
+
+	.hidden {
+		visibility: hidden;
+		display: none;
+	}
+
+	.autoriaus-eilutė {
+		background-color: #f2f3f5;
+	}
+
+	.partnerio-eilutė {
+		background-color: #f0fff0;
+	}
+</style>
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-6">
+			<h3>Skelbimai</h3>
+			<p>Skelbkite stalo žaidimo partnerio paiešką arba ieškokite dominančių skelbimų!</p>
+		</div>
+		<div class="col-sm-6 float-right">
+			<div class="mygtukų-wrapper float-right">
+				<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#PatalpintiSkelbimaModal">Patalpinti skelbimą</button>
+				<a class="btn btn-success" asp-area="" asp-controller="Skelbimai" asp-action="GaukSkelbimusKaipPartnerio">Skelbimai kur ęsate partneris</a>
+				<a class="btn btn-secondary" asp-area="" asp-controller="Skelbimai" asp-action="GaukNaudotojoSkelbimus">Mano skelbimai</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<br />
+
+<div class="pagination">
+	<table class="table">
+		<thead class="centruok-tekstą">
+			<tr>
+				<th>Skelbimo pavadinimas</th>
+				<th>Žaidimo pavadinimas</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@if (Model.SkelbimųSąrašas.Skelbimai != null && Model.SkelbimųSąrašas.Skelbimai.Any())
+			{
+				@foreach (var skelbimas in Model.SkelbimųSąrašas.Skelbimai)
+				{
+					<tr @if (skelbimas.ArAutorius) {
+						<text>class="autoriaus-eilutė"</text>
+					} else if (skelbimas.ArPartneris) {
+						<text>class="partnerio-eilutė"</text>
+					}
+					>
+						<td>@skelbimas.Pavadinimas</td>
+						<td>@skelbimas.ŽaidimoPavadinimas</td>
+						<td>
+							<div class="float-right">
+								<button class="peržiūrėti-skelbimą btn btn-outline-primary centruok-mygtuką"
+										data-skelbimonr="@skelbimas.SkelbimoId"
+										data-skelbimas="@skelbimas.Pavadinimas"
+										data-zaidimas="@skelbimas.ŽaidimoPavadinimas"
+										data-aprasymas="@skelbimas.Aprašymas"
+										data-arautorius="@skelbimas.ArAutorius"
+										data-arpartneris="@skelbimas.ArPartneris"
+										data-bs-toggle="modal"
+										data-bs-target="#PerziuretiSkelbimaModal">
+									Peržiūrėti
+								</button>
+							</div>
+						</td>
+					</tr>
+				}
+			}
+			else
+			{
+				<tr>
+					<td colspan="3" class="centruok-tekstą">Nėra duomenų</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+@if (Model.SkelbimųSąrašas.VisoPuslapių > 1)
+{
+	<div>
+		<nav aria-label="Page navigation">
+			<ul class="pagination justify-content-center">
+				@for (int i = 1; i <= Model.SkelbimųSąrašas.VisoPuslapių; i++)
+				{
+					<li class="page-item @(i == Model.SkelbimųSąrašas.DabartinisPuslapis ? "active" : "")">
+						<a class="page-link" href="/Skelbimai/GaukSkelbimus?puslapioNumeris=@i&puslapioDydis=@Model.SkelbimųSąrašas.PuslapioDydis">@i</a>
+					</li>
+				}
+			</ul>
+		</nav>
+	</div>
+}
+
+<div class="modal fade" id="PatalpintiSkelbimaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Patalpinti skelbimą</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form asp-controller="Skelbimai" asp-action="PridėkSkelbimą" method="post">
+					<div class="modal-body">
+						<div class="form-group">
+							@Html.LabelFor(m => m.Skelbimas.Pavadinimas)
+							@Html.EditorFor(m => m.Skelbimas.Pavadinimas, new { htmlAttributes = new { @class = "skelbimo-pavadinimas-input form-control" } })
+						</div>
+						<br />
+						<div class="form-group">
+							@Html.LabelFor(m => m.Skelbimas.ŽaidimoPavadinimas)
+							@Html.DropDownListFor(m => m.Skelbimas.ŽaidimoId, new SelectList(Model.Žaidimai, "ŽaidimoId", "Pavadinimas"), "-- Pasirinkite žaidimą --", new { @class = "form-control" })
+						</div>
+						<br />
+						<div class="form-group">
+							@Html.LabelFor(m => m.Skelbimas.Aprašymas)
+							@Html.TextAreaFor(m => m.Skelbimas.Aprašymas, new { @class = "skelbimo-aprašymas-input form-control" })
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary patalpinti-skelbimą">Patalpinti</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="PerziuretiSkelbimaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="PerziurosPavadinimas"></h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			@Html.HiddenFor(m => m.Skelbimas.SkelbimoId, new { @class = "peržiūrimo-skelbimo-id" })
+			<div class="modal-body">
+				<div>
+					@Html.LabelFor(m => m.Skelbimas.ŽaidimoPavadinimas)
+					<p class="aprašymas-žaidimas"></p>
+				</div>
+				<br />
+				<div>
+					@Html.LabelFor(m => m.Skelbimas.Aprašymas)
+					<p class="aprašymas-tekstas"></p>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary pasisiūlyti-partneriu hidden" data-bs-dismiss="modal">Pasisiūlyti būti partneriu</button>
+				<button type="button" class="btn btn-danger atšaukti-būti-partneriu hidden" data-bs-dismiss="modal">Atšaukti būti partneriu</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		$(document).ready(function () {
+			$(".patalpinti-skelbimą").on("click", function () {
+				var forma = $("#PatalpintiSkelbimaModal").find("form");
+				forma.submit();
+			});
+
+			$(".peržiūrėti-skelbimą").on("click", function () {
+				var skelbimoId = $(this).data("skelbimonr");
+				var skelbimas = $(this).data("skelbimas");
+				var žaidimas = $(this).data("zaidimas");
+				var aprašymas = $(this).data("aprasymas");
+				var arAutorius = $(this).data("arautorius");
+				var arPartneris = $(this).data("arpartneris");
+
+				$(".peržiūrimo-skelbimo-id").val(skelbimoId);
+				$("#PerziurosPavadinimas").text(skelbimas);
+				$(".aprašymas-žaidimas").text(žaidimas);
+				$(".aprašymas-tekstas").text(aprašymas);
+
+				if ((arAutorius === "False" || arAutorius === false) && (arPartneris === "False" || arPartneris === false)) {
+					$(".pasisiūlyti-partneriu").removeClass("hidden");
+				} else if (arPartneris === "True" || arPartneris === true) {
+					$(".atšaukti-būti-partneriu").removeClass("hidden");
+				} else {
+					$(".pasisiūlyti-partneriu").addClass("hidden");
+					$(".atšaukti-būti-partneriu").addClass("hidden");
+				}
+			});
+
+			$("#PerziuretiSkelbimaModal").on("hidden.bs.modal", function () {
+				$(".pasisiūlyti-partneriu").addClass("hidden");
+				$(".atšaukti-būti-partneriu").addClass("hidden");
+			});
+
+			$(".pasisiūlyti-partneriu").on("click", function () {
+				var id = $(this).closest(".modal-content").find(".peržiūrimo-skelbimo-id").val();
+
+				if (id == null || id == "" || id == 0) {
+					return;
+				}
+
+				$.ajax({
+					url: "/Skelbimai/PatalpinkSkelbimoNarį/" + id,
+					type: "POST",
+					success: function () {
+						location.reload();
+					},
+					error: function () {
+						alert("Įvyko klaida.");
+					}
+				});
+			});
+
+			$(".atšaukti-būti-partneriu").on("click", function () {
+				var id = $(this).closest(".modal-content").find(".peržiūrimo-skelbimo-id").val();
+
+				if (id == null || id == "" || id == 0) {
+					return;
+				}
+
+				$.ajax({
+					url: "/Skelbimai/PašalinkSkelbimoNarį/" + id,
+					type: "POST",
+					success: function () {
+						location.reload();
+					},
+					error: function () {
+						alert("Įvyko klaida.");
+					}
+				});
+			});
+		});
+	</script>
+}

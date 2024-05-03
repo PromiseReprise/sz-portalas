@@ -1,0 +1,40 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels.Naudotojai
+
+@model Registracija
+
+@{
+	ViewData["Title"] = "Registracija";
+}
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-4">
+			<h1>Registracija</h1>
+			@using(Html.BeginForm("Registruok", "Naudotojai"))
+			{
+				@Html.ValidationSummary(true)
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.ElPaštas, new { @class = "form-label" })
+					@Html.EditorFor(m => m.ElPaštas, new { htmlAttributes = new { @class = "form-control" } })
+					@Html.ValidationMessageFor(m => m.ElPaštas, "", new { @class = "text-danger mb-2" })
+				</div>
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.Slapyvardis, new { @class = "form-label" })
+					@Html.EditorFor(m => m.Slapyvardis, new { htmlAttributes = new { @class = "form-control" } })
+					@Html.ValidationMessageFor(m => m.Slapyvardis, "", new { @class = "text-danger mb-2" })
+				</div>
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.Slaptažodis, new { @class = "form-label" })
+					@Html.EditorFor(m => m.Slaptažodis, new { htmlAttributes = new { @class = "form-control" } })
+					@Html.ValidationMessageFor(m => m.Slaptažodis, "", new { @class = "text-danger mb-2" })
+				</div>
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.SlaptažodžioPatvirtinimas, new { @class = "form-label" })
+					@Html.EditorFor(m => m.SlaptažodžioPatvirtinimas, new { htmlAttributes = new { @class = "form-control" } })
+					@Html.ValidationMessageFor(m => m.SlaptažodžioPatvirtinimas, "", new { @class = "text-danger mb-2" })
+				</div>
+				<button type="submit" class="btn btn-primary">Registruotis</button>
+			}
+		</div>
+	</div>
+</div>

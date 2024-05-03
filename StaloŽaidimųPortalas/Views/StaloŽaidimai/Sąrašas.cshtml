@@ -1,0 +1,220 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels
+
+@model StaloŽaidimai
+
+@{
+	ViewData["Title"] = "Stalo žaidimai";
+}
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-9">
+			<h3>Stalo žaidimai</h3>
+		</div>
+		<div class="col-sm-3 float-right">
+			<button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#PridetiZaidimaModal">Pridėti</button>
+		</div>
+	</div>
+</div>
+
+<br />
+
+<div class="pagination">
+	<table class="table">
+		<thead class="centruok-tekstą">
+			<tr>
+				<th>Pavadinimas</th>
+				<th>Kategorija</th>
+				<th>Žaidėjų skaičius</th>
+				<th>Redaguoti</th>
+				<th>Pašalinti</th>
+			</tr>
+		</thead>
+		<tbody>
+			@if (Model.ŽaidimųSąrašas.Žaidimai != null && Model.ŽaidimųSąrašas.Žaidimai.Any())
+			{
+				@foreach (var žaidimas in Model.ŽaidimųSąrašas.Žaidimai)
+				{
+					<tr>
+						<td>@žaidimas.Pavadinimas</td>
+						<td>@žaidimas.Kategorija</td>
+						@if (@žaidimas.ŽaidėjųKiekisMin != null && @žaidimas.ŽaidėjųKiekisMax != null)
+						{
+							<td class="centruok-tekstą">@žaidimas.ŽaidėjųKiekisMin - @žaidimas.ŽaidėjųKiekisMax</td>
+						}
+						else if (@žaidimas.ŽaidėjųKiekisMin != null || @žaidimas.ŽaidėjųKiekisMax != null)
+						{
+							<td class="centruok-tekstą">@(žaidimas.ŽaidėjųKiekisMin ?? žaidimas.ŽaidėjųKiekisMax)</td>
+						}
+						else
+						{
+							<td></td>
+						}
+						<td>
+							<button class="redaguoti-žaidimą btn btn-outline-primary centruok-mygtuką"
+									data-zaidimo-id="@žaidimas.ŽaidimoId"
+									data-bs-toggle="modal"
+									data-bs-target="#RedaguotiZaidimaModal">
+								Redaguoti
+							</button>
+						</td>
+						<td>
+							<button class="btn btn-outline-danger centruok-mygtuką"
+									onclick="arŠalintiŽaidimą('@žaidimas.ŽaidimoId', '@žaidimas.Pavadinimas')">
+								Šalinti
+							</button>
+						</td>
+					</tr>
+				}
+			}
+			else
+			{
+				<tr>
+					<td colspan="5" class="centruok-tekstą">Nėra duomenų</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+@if (Model.ŽaidimųSąrašas.VisoPuslapių > 1)
+{
+	<div>
+		<nav aria-label="Page navigation">
+			<ul class="pagination justify-content-center">
+				@for (int i = 1; i <= Model.ŽaidimųSąrašas.VisoPuslapių; i++)
+				{
+					<li class="page-item @(i == Model.ŽaidimųSąrašas.DabartinisPuslapis ? "active" : "")">
+						<a class="page-link" href="/StaloŽaidimai/GaukSąrašą?puslapioNumeris=@i&puslapioDydis=@Model.ŽaidimųSąrašas.PuslapioDydis">@i</a>
+					</li>
+				}
+			</ul>
+		</nav>
+	</div>
+}
+
+<div class="modal fade" id="PridetiZaidimaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Pridėti žaidimą</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				@using (Html.BeginForm("PridėkŽaidimą", "StaloŽaidimai"))
+				{
+					@Html.ValidationSummary(true)
+					<div class="modal-body">
+						<div class="form-group">
+							@Html.LabelFor(m => m.Žaidimas.Pavadinimas)
+							@Html.EditorFor(m => m.Žaidimas.Pavadinimas, new { htmlAttributes = new { @class = "žaidimo-pavadinimas-input form-control" } })
+							@Html.ValidationMessageFor(m => m.Žaidimas.Pavadinimas, "", new { @class = "text-danger mb-2" })
+						</div>
+						<div class="form-group">
+							@Html.LabelFor(m => m.Žaidimas.Kategorija)
+							@Html.EditorFor(m => m.Žaidimas.Kategorija, new { htmlAttributes = new { @class = "žaidimo-kategorija-input form-control" } })
+							@Html.ValidationMessageFor(m => m.Žaidimas.Kategorija, "", new { @class = "text-danger mb-2" })
+						</div>
+						<div class="form-group">
+							@Html.LabelFor(m => m.Žaidimas.ŽaidėjųKiekisMin)
+							@Html.EditorFor(m => m.Žaidimas.ŽaidėjųKiekisMin, new { htmlAttributes = new { @class = "form-control" } })
+							@Html.ValidationMessageFor(m => m.Žaidimas.ŽaidėjųKiekisMin, "", new { @class = "text-danger mb-2" })
+						</div>
+						<div class="form-group">
+							@Html.LabelFor(m => m.Žaidimas.ŽaidėjųKiekisMax)
+							@Html.EditorFor(m => m.Žaidimas.ŽaidėjųKiekisMax, new { htmlAttributes = new { @class = "form-control" } })
+							@Html.ValidationMessageFor(m => m.Žaidimas.ŽaidėjųKiekisMax, "", new { @class = "text-danger mb-2" })
+						</div>
+					</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-primary pridėti-žaidimą">Pridėti</button>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+				</div>
+				}
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="RedaguotiZaidimaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Pridėti žaidimą</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				@using (Html.BeginForm("RedaguokŽaidimą", "StaloŽaidimai"))
+				{
+					@Html.ValidationSummary(true)
+					<div class="modal-body">
+						@Html.HiddenFor(m => m.Žaidimas.ŽaidimoId, new { @class = "redaguojamo-žaidimo-id" })
+						<div class="form-group">
+							@Html.LabelFor(m => m.Žaidimas.Pavadinimas)
+							@Html.EditorFor(m => m.Žaidimas.Pavadinimas, new { htmlAttributes = new { @class = "redaguojamo-žaidimo-pavadinimas-input form-control" } })
+							@Html.ValidationMessageFor(m => m.Žaidimas.Pavadinimas, "", new { @class = "text-danger mb-2" })
+						</div>
+						<div class="form-group">
+							@Html.LabelFor(m => m.Žaidimas.Kategorija)
+							@Html.EditorFor(m => m.Žaidimas.Kategorija, new { htmlAttributes = new { @class = "redaguojamo-žaidimo-kategorija-input form-control" } })
+							@Html.ValidationMessageFor(m => m.Žaidimas.Kategorija, "", new { @class = "text-danger mb-2" })
+						</div>
+						<div class="form-group">
+							@Html.LabelFor(m => m.Žaidimas.ŽaidėjųKiekisMin)
+							@Html.EditorFor(m => m.Žaidimas.ŽaidėjųKiekisMin, new { htmlAttributes = new { @class = "redaguojamo-žaidimo-min-input form-control" } })
+							@Html.ValidationMessageFor(m => m.Žaidimas.ŽaidėjųKiekisMin, "", new { @class = "text-danger mb-2" })
+						</div>
+						<div class="form-group">
+							@Html.LabelFor(m => m.Žaidimas.ŽaidėjųKiekisMax)
+							@Html.EditorFor(m => m.Žaidimas.ŽaidėjųKiekisMax, new { htmlAttributes = new { @class = "redaguojamo-žaidimo-max-input form-control" } })
+							@Html.ValidationMessageFor(m => m.Žaidimas.ŽaidėjųKiekisMax, "", new { @class = "text-danger mb-2" })
+						</div>
+					</div>
+				<div class="modal-footer">
+					<button type="submit" class="btn btn-primary išsaugoti-redaguojamą-žaidimą">Išsaugoti</button>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+				</div>
+				}
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		function arŠalintiŽaidimą(žaidimoId, žaidimoPavadinimas) {
+			if (confirm("Ar tikrai norite pašalinti žaidimą: " + žaidimoPavadinimas + "?")) {
+				$.ajax({
+					url: "/StaloŽaidimai/PašalinkŽaidimą/" + žaidimoId,
+					type: "POST",
+					success: function () {
+						location.reload();
+					},
+					error: function () {
+						alert("Įvyko klaida šalinant žaidimą.");
+					}
+				});
+			}
+		};
+
+		$(document).ready(function () {
+			$(".redaguoti-žaidimą").click(function () {
+				var žaidimoId = $(this).data("zaidimo-id");
+
+				$.ajax({
+					url: "/StaloŽaidimai/GaukŽaidimą/" + žaidimoId,
+					type: "GET",
+					success: function (žaidimas) {
+						$(".redaguojamo-žaidimo-id").val(žaidimas.žaidimoId);
+						$(".redaguojamo-žaidimo-pavadinimas-input").val(žaidimas.pavadinimas);
+						$(".redaguojamo-žaidimo-kategorija-input").val(žaidimas.kategorija);
+						$(".redaguojamo-žaidimo-min-input").val(žaidimas.žaidėjųKiekisMin);
+						$(".redaguojamo-žaidimo-max-input").val(žaidimas.žaidėjųKiekisMax);
+
+						$("#RedaguotiZaidimaModal").modal("show");
+					}
+				});
+			});
+		});
+	</script>
+}

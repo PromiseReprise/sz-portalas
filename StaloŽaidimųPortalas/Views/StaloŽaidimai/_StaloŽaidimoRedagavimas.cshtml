@@ -1,0 +1,35 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels
+
+@model StaloŽaidimai.StaloŽaidimas
+
+@using (Html.BeginForm("RedaguokŽaidimą", "StaloŽaidimai"))
+{
+	@Html.ValidationSummary(true)
+	<div class="modal-body">
+		@Html.HiddenFor(m => m.ŽaidimoId, new { @class = "redaguojamo-žaidimo-id" })
+		<div class="form-group">
+			@Html.LabelFor(m => m.Pavadinimas)
+			@Html.EditorFor(m => m.Pavadinimas, new { htmlAttributes = new { @class = "redaguojamo-žaidimo-pavadinimas-input form-control" } })
+			@Html.ValidationMessageFor(m => m.Pavadinimas, "", new { @class = "text-danger mb-2" })
+		</div>
+		<div class="form-group">
+			@Html.LabelFor(m => m.Kategorija)
+			@Html.EditorFor(m => m.Kategorija, new { htmlAttributes = new { @class = "redaguojamo-žaidimo-kategorija-input form-control" } })
+			@Html.ValidationMessageFor(m => m.Kategorija, "", new { @class = "text-danger mb-2" })
+		</div>
+		<div class="form-group">
+			@Html.LabelFor(m => m.ŽaidėjųKiekisMin)
+			@Html.EditorFor(m => m.ŽaidėjųKiekisMin, new { htmlAttributes = new { @class = "redaguojamo-žaidimo-min-input form-control" } })
+			@Html.ValidationMessageFor(m => m.ŽaidėjųKiekisMin, "", new { @class = "text-danger mb-2" })
+		</div>
+		<div class="form-group">
+			@Html.LabelFor(m => m.ŽaidėjųKiekisMax)
+			@Html.EditorFor(m => m.ŽaidėjųKiekisMax, new { htmlAttributes = new { @class = "redaguojamo-žaidimo-max-input form-control" } })
+			@Html.ValidationMessageFor(m => m.ŽaidėjųKiekisMax, "", new { @class = "text-danger mb-2" })
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button type="submit" class="btn btn-primary išsaugoti-redaguojamą-žaidimą">Išsaugoti</button>
+		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+	</div>
+}

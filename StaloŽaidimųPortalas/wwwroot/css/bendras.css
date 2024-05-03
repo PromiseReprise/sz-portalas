@@ -1,0 +1,26 @@
+﻿.valdymo-meniu-wrapper {
+	padding-left: 5%;
+	padding-right: 5%;
+}
+.nav-link {
+	font-size: 13pt;
+}
+.avataras {
+	vertical-align: middle;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+}
+.float-right {
+	float: right;
+}
+.centruok-tekstą {
+	text-align: center;
+}
+	.centruok-tekstą th {
+		text-align: center;
+	}
+.centruok-mygtuką {
+	display: block;
+	margin: auto;
+}
