@@ -65,23 +65,23 @@
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> PridėkŽaidimą(StaloŽaidimai staloŽaidimas)
+		public async Task<IActionResult> PridėkŽaidimą(StaloŽaidimai.StaloŽaidimas staloŽaidimas)
 		{
 			if (ModelState.IsValid)
 			{
 					var žaidimas = new StaloŽaidimas
 					{
-						Pavadinimas = staloŽaidimas.Žaidimas.Pavadinimas,
-						Kategorija = staloŽaidimas.Žaidimas.Kategorija,
-						ŽaidėjųKiekisMin = staloŽaidimas.Žaidimas.ŽaidėjųKiekisMin,
-						ŽaidėjųKiekisMax = staloŽaidimas.Žaidimas.ŽaidėjųKiekisMax
+						Pavadinimas = staloŽaidimas.Pavadinimas,
+						Kategorija = staloŽaidimas.Kategorija,
+						ŽaidėjųKiekisMin = staloŽaidimas.ŽaidėjųKiekisMin,
+						ŽaidėjųKiekisMax = staloŽaidimas.ŽaidėjųKiekisMax
 					};
 
 					_dbContext.StaloŽaidimai.Add(žaidimas);
 					await _dbContext.SaveChangesAsync();
 			}
 
-			return RedirectToAction(nameof(GaukSąrašą));
+			return PartialView("_StaloŽaidimoĮvedimas", staloŽaidimas);
 		}
 
 		[HttpGet]

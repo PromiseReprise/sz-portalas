@@ -112,34 +112,7 @@
 <div class="modal fade" id="PatalpintiSkelbimaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="exampleModalLabel">Patalpinti skelbimą</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<form asp-controller="Skelbimai" asp-action="PridėkSkelbimą" method="post">
-					<div class="modal-body">
-						<div class="form-group">
-							@Html.LabelFor(m => m.Skelbimas.Pavadinimas)
-							@Html.EditorFor(m => m.Skelbimas.Pavadinimas, new { htmlAttributes = new { @class = "skelbimo-pavadinimas-input form-control" } })
-						</div>
-						<br />
-						<div class="form-group">
-							@Html.LabelFor(m => m.Skelbimas.ŽaidimoPavadinimas)
-							@Html.DropDownListFor(m => m.Skelbimas.ŽaidimoId, new SelectList(Model.Žaidimai, "ŽaidimoId", "Pavadinimas"), "-- Pasirinkite žaidimą --", new { @class = "form-control" })
-						</div>
-						<br />
-						<div class="form-group">
-							@Html.LabelFor(m => m.Skelbimas.Aprašymas)
-							@Html.TextAreaFor(m => m.Skelbimas.Aprašymas, new { @class = "skelbimo-aprašymas-input form-control" })
-						</div>
-					</div>
-				</form>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-primary patalpinti-skelbimą">Patalpinti</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
-			</div>
+			@await Html.PartialAsync("_SkelbimoĮvedimas", Model.Skelbimas)
 		</div>
 	</div>
 </div>
@@ -147,35 +120,7 @@
 <div class="modal fade" id="RedaguotiSkelbimaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="exampleModalLabel">Redaguoti skelbimą</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<form asp-controller="Skelbimai" asp-action="RedaguokSkelbimą" method="post">
-					<div class="modal-body">
-						@Html.HiddenFor(m => m.Skelbimas.SkelbimoId, new { @class = "redaguojamo-skelbimo-id" })
-						<div class="form-group">
-							@Html.LabelFor(m => m.Skelbimas.Pavadinimas)
-							@Html.EditorFor(m => m.Skelbimas.Pavadinimas, new { htmlAttributes = new { @class = "redaguojamo-skelbimo-pavadinimas-input form-control" } })
-						</div>
-						<br />
-						<div class="form-group">
-							@Html.LabelFor(m => m.Skelbimas.ŽaidimoPavadinimas)
-							@Html.DropDownListFor(m => m.Skelbimas.ŽaidimoId, new SelectList(Model.Žaidimai, "ŽaidimoId", "Pavadinimas"), "-- Pasirinkite žaidimą --", new { @class = "redaguojamo-skelbimo-žaidimas-input form-control" })
-						</div>
-						<br />
-						<div class="form-group">
-							@Html.LabelFor(m => m.Skelbimas.Aprašymas)
-							@Html.TextAreaFor(m => m.Skelbimas.Aprašymas, new { @class = "redaguojamo-skelbimo-aprašymas-input  form-control" })
-						</div>
-					</div>
-				</form>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-primary išsaugoti-redaguojamą-žaidimą">Redaguoti</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
-			</div>
+			@await Html.PartialAsync("_SkelbimoRedagavimas", Model.Skelbimas)
 		</div>
 	</div>
 </div>
@@ -228,9 +173,97 @@
 		};
 
 		$(document).ready(function () {
-			$(".patalpinti-skelbimą").on("click", function () {
-				var forma = $("#PatalpintiSkelbimaModal").find("form");
-				forma.submit();
+			function gaukŽaidimus() {
+				$.ajax({
+					url: '@Url.Action("GaukStaloŽaidimus", "Skelbimai")',
+					type: 'GET',
+					dataType: 'json',
+					success: function (data) {
+						var dropdown = $("#ZaidimuDropdown");
+						var dropdownRedagavimui = $("#ZaidimuDropdownRedagavimas");
+						dropdown.empty();
+						dropdownRedagavimui.empty();
+						dropdown.append($("<option>").text("-- Pasirinkite žaidimą --").val(0));
+						$.each(data, function (index, item) {
+							dropdown.append($("<option>").text(item.pavadinimas).val(item.žaidimoId));
+							dropdownRedagavimui.append($("<option>").text(item.pavadinimas).val(item.žaidimoId));
+						});
+					},
+					error: function () {
+						alert("Klaida gaunant žaidimų sąrašą.");
+					}
+				});
+			}
+
+			gaukŽaidimus();
+
+			$(".redaguoti-skelbimą").click(function () {
+				var skelbimoId = $(this).data("skelbimo-id");
+
+				$.ajax({
+					url: "/Skelbimai/GaukSkelbimą/" + skelbimoId,
+					type: "GET",
+					success: function (skelbimas) {
+						$(".redaguojamo-skelbimo-id").val(skelbimas.skelbimoId);
+						$(".redaguojamo-skelbimo-pavadinimas-input").val(skelbimas.pavadinimas);
+						$("#ZaidimuDropdownRedagavimas").val(skelbimas.žaidimoId);
+						$(".redaguojamo-skelbimo-aprašymas-input").val(skelbimas.aprašymas);
+
+						$("#RedaguotiSkelbimaModal").modal("show");
+					}
+				});
+			});
+
+			$(document).on("submit", "#PatalpintiSkelbimaModal form", function (event) {
+				event.preventDefault();
+				var form = $(this);
+
+				$.ajax({
+					url: form.attr("action"),
+					type: "POST",
+					data: form.serialize(),
+					success: function (response) {
+						var hasErrors = $(response).find(".field-validation-error").length > 0;
+
+						if (hasErrors) {
+							gaukŽaidimus();
+							$("#PatalpintiSkelbimaModal .modal-content").html(response);
+						} else {
+							$("#PatalpintiSkelbimaModal").modal("hide");
+							location.reload();
+						}
+					},
+					error: function (xhr, status, error) {
+						gaukŽaidimus();
+						$("#PatalpintiSkelbimaModal").html(xhr.responseText);
+					}
+				});
+			});
+
+			$(document).on("submit", "#RedaguotiSkelbimaModal form", function (event) {
+				event.preventDefault();
+				var form = $(this);
+
+				$.ajax({
+					url: form.attr("action"),
+					type: "POST",
+					data: form.serialize(),
+					success: function (response) {
+						var hasErrors = $(response).find(".field-validation-error").length > 0;
+
+						if (hasErrors) {
+							gaukŽaidimus();
+							$("#RedaguotiSkelbimaModal .modal-content").html(response);
+						} else {
+							$("#RedaguotiSkelbimaModal").modal("hide");
+							location.reload();
+						}
+					},
+					error: function (xhr, status, error) {
+						gaukŽaidimus();
+						$("#RedaguotiSkelbimaModal").html(xhr.responseText);
+					}
+				});
 			});
 
 			$(".peržiūrėti-skelbimą").on("click", function () {
@@ -262,28 +295,6 @@
 						console.error("Klaida gaunant parnerius: ", error);
 					}
 				});
-			});
-
-			$(".redaguoti-skelbimą").click(function () {
-				var skelbimoId = $(this).data("skelbimo-id");
-
-				$.ajax({
-					url: "/Skelbimai/GaukSkelbimą/" + skelbimoId,
-					type: "GET",
-					success: function (skelbimas) {
-						$(".redaguojamo-skelbimo-id").val(skelbimas.skelbimoId);
-						$(".redaguojamo-skelbimo-pavadinimas-input").val(skelbimas.pavadinimas);
-						$(".redaguojamo-skelbimo-žaidimas-input").val(skelbimas.žaidimoId);
-						$(".redaguojamo-skelbimo-aprašymas-input").val(skelbimas.aprašymas);
-
-						$("#RedaguotiSkelbimaModal").modal("show");
-					}
-				});
-			});
-
-			$(".išsaugoti-redaguojamą-žaidimą").click(function () {
-				var forma = $("#RedaguotiSkelbimaModal").find("form");
-				forma.submit();
 			});
 		});
 	</script>

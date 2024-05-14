@@ -8,6 +8,7 @@
     using StaloŽaidimųPortalas.Models.Entities;
 	using StaloŽaidimųPortalas.Models.ViewModels.Skelbimai;
 	using System.Linq;
+	using System.Security.Claims;
 	using static StaloŽaidimųPortalas.Models.ViewModels.Skelbimai.Skelbimai;
 
 	[Authorize]
@@ -95,23 +96,23 @@
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> PridėkSkelbimą(Skelbimai patalpinamasSkelbimas)
+		public async Task<IActionResult> PridėkSkelbimą(Skelbimai.ŽaidimoSkelbimas patalpinamasSkelbimas)
 		{
 			if (ModelState.IsValid)
 			{
 				var naujasSkelbimas = new Skelbimas
 				{
-					Pavadinimas = patalpinamasSkelbimas.Skelbimas.Aprašymas,
+					Pavadinimas = patalpinamasSkelbimas.Pavadinimas,
 					NaudotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
-					ŽaidimoId = patalpinamasSkelbimas.Skelbimas.ŽaidimoId,
-					Aprašymas = patalpinamasSkelbimas.Skelbimas.Aprašymas
+					ŽaidimoId = patalpinamasSkelbimas.ŽaidimoId,
+					Aprašymas = patalpinamasSkelbimas.Aprašymas
 				};
 
 				_dbContext.Skelbimai.Add(naujasSkelbimas);
 				await _dbContext.SaveChangesAsync();
 			}
 
-			return RedirectToAction(nameof(GaukSkelbimus));
+			return PartialView("_SkelbimoĮvedimas", patalpinamasSkelbimas);
 		}
 
 		[HttpGet]
@@ -261,31 +262,50 @@
 		}
 
 		[HttpPost]
-		public IActionResult RedaguokSkelbimą(Skelbimai redaguojamasSkelbimas)
+		public async Task<IActionResult> RedaguokSkelbimą(Skelbimai.ŽaidimoSkelbimas redaguojamasSkelbimas)
 		{
-			var skelbimas = _dbContext.Skelbimai.FirstOrDefault(m => m.SkelbimoId == redaguojamasSkelbimas.Skelbimas.SkelbimoId);
-
-			if (skelbimas != null)
+			if (ModelState.IsValid)
 			{
-				skelbimas.Pavadinimas = redaguojamasSkelbimas.Skelbimas.Pavadinimas;
-				skelbimas.ŽaidimoId = redaguojamasSkelbimas.Skelbimas.ŽaidimoId;
-				skelbimas.Aprašymas = redaguojamasSkelbimas.Skelbimas.Aprašymas;
+				var dabartinisUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+				var skelbimas = _dbContext.Skelbimai.FirstOrDefault(m => m.SkelbimoId == redaguojamasSkelbimas.SkelbimoId);
 
-				_dbContext.SaveChanges();
+				if (skelbimas != null)
+				{
+					if (skelbimas.NaudotojoId == dabartinisUserId)
+					{
+						skelbimas.Pavadinimas = redaguojamasSkelbimas.Pavadinimas;
+						skelbimas.ŽaidimoId = redaguojamasSkelbimas.ŽaidimoId;
+						skelbimas.Aprašymas = redaguojamasSkelbimas.Aprašymas;
+
+						await _dbContext.SaveChangesAsync();
+					} 
+					else
+					{
+						Forbid();
+					}
+				}
 			}
 
-			return RedirectToAction(nameof(GaukNaudotojoSkelbimus));
+			return PartialView("_SkelbimoRedagavimas", redaguojamasSkelbimas);
 		}
 
 		[HttpPost]
 		public async Task<IActionResult> PašalinkSkelbimą(int id)
 		{
 			var skelbimas = await _dbContext.Skelbimai.FindAsync(id);
+			var vartotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
 			if (skelbimas != null)
 			{
-				_dbContext.Skelbimai.Remove(skelbimas);
-				await _dbContext.SaveChangesAsync();
+				if (skelbimas.NaudotojoId == vartotojoId)
+				{
+					_dbContext.Skelbimai.Remove(skelbimas);
+					await _dbContext.SaveChangesAsync();
+				}
+				else
+				{
+					Forbid();
+				}
 			}
 
 			return RedirectToAction(nameof(GaukNaudotojoSkelbimus));
@@ -344,6 +364,13 @@
 			}
 
 			return Json(new List<Partneris>());
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> GaukStaloŽaidimus()
+		{
+			var staloŽaidimai = await _dbContext.StaloŽaidimai.ToListAsync();
+			return Json(staloŽaidimai);
 		}
 	}
 }

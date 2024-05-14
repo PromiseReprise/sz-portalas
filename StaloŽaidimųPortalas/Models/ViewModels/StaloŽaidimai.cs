@@ -14,11 +14,11 @@
 			public int ŽaidimoId { get; set; }
 
 			[DisplayName("Pavadinimas")]
-			[Required(ErrorMessage = "Privalomas laukas")]
+			[Required(ErrorMessage = "Privalomas laukas"), StringLength(250, ErrorMessage = "Maksimalus simbolių skaičius 250")]
 			public string Pavadinimas { get; set; }
 
 			[DisplayName("Kategorija")]
-			[Required(ErrorMessage = "Privalomas laukas")]
+			[Required(ErrorMessage = "Privalomas laukas"), StringLength(250, ErrorMessage = "Maksimalus simbolių skaičius 250")]
 			public string Kategorija { get; set; }
 
 			[DisplayName("Minimalus žaidėjų kiekis")]
