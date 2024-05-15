@@ -54,14 +54,13 @@
 	<div class="card-container">
 	@foreach (var bendruomenė in Model.Sąrašas.Bendruomenės)
 	{
-		<div class="card">
+		<div class="card" data-bendruomenės-id="@bendruomenė.BendruomenėsId">
 			<div class="card-body">
 				<h5 class="card-title">@bendruomenė.Pavadinimas</h5>
 				<h6 class="card-title">@bendruomenė.ŽaidimoPavadinimas</h6>
 				<p class="card-subtitle mb-2 text-muted" style="font-size:10pt;">@bendruomenė.Autorius</p>
 				<p class="card-text">@bendruomenė.Aprašymas</p>
 			</div>
-			<a href="@Url.Action("GaukBendruomenę", "Bendruomenė", new { id = bendruomenė.BendruomenėsId })" class="card-link hidden" target="_blank">Peržiūrėti</a>
 		</div>
 	}
 	</div>
@@ -90,7 +89,6 @@ else
 <div class="modal fade" id="PridetiBendruomeneModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
-			@await Html.PartialAsync("_BendruomenėsĮvedimas", Model.ŽaidimoBendruomenė)
 		</div>
 	</div>
 </div>
@@ -125,11 +123,10 @@ else
 		$(document).ready(function () {
 			document.querySelectorAll(".card").forEach(card => {
 				card.addEventListener("click", function () {
-					const linkElement = this.querySelector(".card-link");
-					if (linkElement) {
-						const linkUrl = linkElement.getAttribute("href");
-						if (linkUrl) {
-							window.open(linkUrl, "_blank");
+					const bendruomenėsId = this.dataset.bendruomenėsId;
+					if (bendruomenėsId) {
+						if (bendruomenėsId) {
+							window.location.href = '/Bendruomenės/GaukBendruomenėsĮrašus?id=' + bendruomenėsId;
 						}
 					}
 				});

@@ -9,6 +9,9 @@
 
 		public int BendruomenėsId { get; set; }
 
+		[StringLength(450)]
+		public string NaudotojoId { get; set; }
+
 		[StringLength(2000)]
 		public string Įrašas { get; set; }
 	}

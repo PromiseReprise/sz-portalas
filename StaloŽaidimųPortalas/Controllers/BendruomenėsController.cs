@@ -7,6 +7,7 @@
 	using StaloŽaidimųPortalas.Data;
 	using StaloŽaidimųPortalas.Models.Entities;
 	using StaloŽaidimųPortalas.Models.ViewModels.Bendruomenės;
+	using System.ComponentModel.DataAnnotations;
 
 	public class BendruomenėsController : Controller
 	{
@@ -137,6 +138,103 @@
 			}
 
 			return PartialView("_BendruomenėsĮvedimas", patalpinamaBendruomenė);
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> GaukBendruomenėsĮrašus(int id, int puslapioNumeris = 1, int puslapioDydis = 10)
+		{
+			var bendruomenėsInformacija = await _dbContext.Bendruomenė.Where(m => m.BendruomenėsId == id).FirstAsync();
+			var visoĮrašų = await _dbContext.BendruomenėsĮrašas.Where(m => m.BendruomenėsId == id).CountAsync();
+
+			var sąrašas = new KonkretiBendruomenė
+			{
+				BendruomenėsId = id,
+				BendruomenėsPavadinimas = bendruomenėsInformacija.Pavadinimas,
+				Įrašai = new KonkretiBendruomenė.BendruomenėsĮrašai { }
+			};
+
+			if (visoĮrašų > 0)
+			{
+				var visoPuslapių = (int)Math.Ceiling((double)visoĮrašų / puslapioDydis);
+
+				if (puslapioNumeris < 1)
+				{
+					puslapioNumeris = 1;
+				}
+				else if (puslapioNumeris > visoPuslapių)
+				{
+					puslapioNumeris = visoPuslapių;
+				}
+
+				int kiekPraleisti = (puslapioNumeris - 1) * puslapioDydis;
+
+				var įrašai = await _dbContext.BendruomenėsĮrašas
+					.Skip(kiekPraleisti)
+					.Take(puslapioDydis)
+					.Where(m => m.BendruomenėsId == id)
+					.Select(m => new KonkretiBendruomenė.Įrašas
+					{
+						ĮrašoId = m.ĮrašoId,
+						BendruomenėsId = m.BendruomenėsId,
+						NaudotojoId = m.NaudotojoId,
+						Autorius = null,
+						Tekstas = m.Įrašas
+					})
+					.ToListAsync();
+
+				var naudotojoIds = įrašai.Select(m => m.NaudotojoId).ToList();
+
+				var userIdToUserNameMap = await _autentikacijosDbContext.Users
+					.Where(u => naudotojoIds.Contains(u.Id))
+					.Select(u => new { UserId = u.Id, UserName = u.UserName })
+					.ToDictionaryAsync(u => u.UserId, u => u.UserName);
+
+				var įrašaiSuAutorium = įrašai.Select(b =>
+				{
+					string autorius = userIdToUserNameMap.ContainsKey(b.NaudotojoId) ? userIdToUserNameMap[b.NaudotojoId] : null;
+
+					return new KonkretiBendruomenė.Įrašas
+					{
+						ĮrašoId = b.ĮrašoId,
+						BendruomenėsId = b.BendruomenėsId,
+						NaudotojoId = b.NaudotojoId,
+						Autorius = autorius,
+						Tekstas = b.Tekstas
+					};
+				})
+				.ToList();
+
+				var įrašųSąrašas = _mapper.Map<List<KonkretiBendruomenė.Įrašas>>(įrašaiSuAutorium);
+
+				sąrašas.Įrašai = new KonkretiBendruomenė.BendruomenėsĮrašai
+				{
+					Įrašai = įrašųSąrašas,
+					DabartinisPuslapis = puslapioNumeris,
+					PuslapioDydis = puslapioDydis,
+					VisoPuslapių = visoPuslapių
+				};
+			}
+
+			return View("Bendruomenė", sąrašas);
+		}
+
+		[HttpPost]
+		public async Task<IActionResult> PridėkBendruomenėsĮraša(KonkretiBendruomenė.Įrašas patalpinamasĮrašas)
+		{
+			if (ModelState.IsValid)
+			{
+				var naujasĮrašas = new BendruomenėsĮrašas
+				{
+					BendruomenėsId = patalpinamasĮrašas.BendruomenėsId,
+					NaudotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+					Įrašas = patalpinamasĮrašas.Tekstas
+				};
+
+				_dbContext.BendruomenėsĮrašas.Add(naujasĮrašas);
+				await _dbContext.SaveChangesAsync();
+			}
+
+			return PartialView("_BendruomenėsĮrašoĮvedimas", patalpinamasĮrašas);
 		}
 	}
 }

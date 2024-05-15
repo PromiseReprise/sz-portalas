@@ -1,0 +1,25 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels.Bendruomenės
+
+@model KonkretiBendruomenė.Įrašas
+
+<div class="modal-header">
+	<h5 class="modal-title" id="exampleModalLabel">Patalpinti įrašą</h5>
+	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+	@using (Html.BeginForm("PridėkBendruomenėsĮraša", "Bendruomenės"))
+	{
+		@Html.ValidationSummary(true)
+		<div class="modal-body">
+			<div class="form-group">
+				@Html.TextAreaFor(m => m.Tekstas, new { @class = "tekstas-input form-control" })
+				@Html.ValidationMessageFor(m => m.Tekstas, "", new { @class = "text-danger mb-2" })
+				@Html.HiddenFor(m => m.BendruomenėsId, new { @class = "bendruomenės-id" })
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="submit" class="btn btn-primary patalpinti-įrašą">Patalpinti</button>
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+		</div>
+	}
+</div>

@@ -1,0 +1,120 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels.Bendruomenės
+@using Microsoft.AspNetCore.Authorization
+
+@model KonkretiBendruomenė
+
+@{
+	ViewData["Title"] = "Bendruomenė";
+}
+
+<style>
+	.siauras {
+		width: 20%;
+	}
+</style>
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-9">
+			@if (Model.BendruomenėsPavadinimas != null)
+			{
+				<h3>@Model.BendruomenėsPavadinimas</h3>
+			}
+		</div>
+		@if (User.Identity.IsAuthenticated)
+		{
+			<div class="col-sm-3 float-right">
+				<button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#PridetiBendruomenesIrasaModal" onclick="perduokId(@Model.BendruomenėsId)">Pridėti įrašą</button>
+			</div>
+		}
+	</div>
+</div>
+
+<br />
+
+<div class="pagination">
+	<table class="table">
+		<thead class="centruok-tekstą">
+			<tr>
+				<th></th>
+				<th class="siauras">Autorius</th>
+			</tr>
+		</thead>
+		<tbody>
+			@if (Model.Įrašai.Įrašai != null && Model.Įrašai.Įrašai.Any())
+			{
+				@foreach (var įrašas in Model.Įrašai.Įrašai)
+				{
+					<tr>
+						<td>@įrašas.Tekstas</td>
+						<td class="siauras centruok-tekstą">@įrašas.Autorius</td>
+					</tr>
+				}
+			}
+			else
+			{
+				<tr>
+					<td colspan="2" class="centruok-tekstą">Nėra įrašų</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+@if (Model.Įrašai.VisoPuslapių > 1)
+{
+	<div>
+		<nav aria-label="Page navigation">
+			<ul class="pagination justify-content-center">
+				@for (int i = 1; i <= Model.Įrašai.VisoPuslapių; i++)
+				{
+					<li class="page-item @(i == Model.Įrašai.DabartinisPuslapis ? "active" : "")">
+						<a class="page-link" href="/Bendruomenės/GaukBendruomenėsĮrašus?puslapioNumeris=@i&puslapioDydis=@Model.Įrašai.PuslapioDydis">@i</a>
+					</li>
+				}
+			</ul>
+		</nav>
+	</div>
+}
+
+<div class="modal fade" id="PridetiBendruomenesIrasaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			@await Html.PartialAsync("_BendruomenėsĮrašoĮvedimas", new KonkretiBendruomenė.Įrašas())
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		function perduokId(id) {
+			$(".bendruomenės-id").val(id);
+		}
+
+		$(document).ready(function () {
+			$(document).on("submit", "#PridetiBendruomenesIrasaModal form", function (event) {
+				event.preventDefault();
+				var form = $(this);
+
+				$.ajax({
+					url: form.attr("action"),
+					type: "POST",
+					data: form.serialize(),
+					success: function (response) {
+						var hasErrors = $(response).find(".field-validation-error").length > 0;
+
+						if (hasErrors) {
+							$("#PridetiBendruomenesIrasaModal .modal-content").html(response);
+						} else {
+							$("#PridetiBendruomenesIrasaModal").modal("hide");
+							location.reload();
+						}
+					},
+					error: function (xhr, status, error) {
+						$("#PridetiBendruomenesIrasaModal").html(xhr.responseText);
+					}
+				});
+			});
+		});
+	</script>
+}
