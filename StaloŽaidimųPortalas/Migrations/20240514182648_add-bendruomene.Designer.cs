@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StaloŽaidimųPortalas.Data;
 
@@ -11,9 +12,11 @@ using StaloŽaidimųPortalas.Data;
 namespace StaloŽaidimųPortalas.Migrations
 {
     [DbContext(typeof(AplikacijosDbContext))]
-    partial class AplikacijosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240514182648_add-bendruomene")]
+    partial class addbendruomene
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,10 +38,6 @@ namespace StaloŽaidimųPortalas.Migrations
                         .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("NaudotojoId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Pavadinimas")
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 

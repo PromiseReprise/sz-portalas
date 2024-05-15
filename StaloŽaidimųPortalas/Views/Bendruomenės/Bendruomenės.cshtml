@@ -1,0 +1,165 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels.Bendruomenės
+@using Microsoft.AspNetCore.Authorization
+
+@model Bendruomenės
+
+@{
+	ViewData["Title"] = "Bendruomenės";
+}
+
+<style>
+	.card-container {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 20px;
+	}
+
+	.card {
+		width: 18rem;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		padding: 10px;
+		margin: 10px;
+		transition: box-shadow 0.3s ease;
+	}
+
+		.card:hover {
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+			cursor: pointer;
+		}
+
+	.hidden {
+		display: none;
+	}
+</style>
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-9">
+			<h3>Bendruomenės</h3>
+		</div>
+		@if (User.Identity.IsAuthenticated)
+		{
+			<div class="col-sm-3 float-right">
+				<button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#PridetiBendruomeneModal">Sukurti bendruomenę</button>
+			</div>
+		}
+	</div>
+</div>
+
+<br />
+
+@if (Model.Sąrašas.Bendruomenės != null && Model.Sąrašas.Bendruomenės.Any())
+{
+	<div class="card-container">
+	@foreach (var bendruomenė in Model.Sąrašas.Bendruomenės)
+	{
+		<div class="card">
+			<div class="card-body">
+				<h5 class="card-title">@bendruomenė.Pavadinimas</h5>
+				<h6 class="card-title">@bendruomenė.ŽaidimoPavadinimas</h6>
+				<p class="card-subtitle mb-2 text-muted" style="font-size:10pt;">@bendruomenė.Autorius</p>
+				<p class="card-text">@bendruomenė.Aprašymas</p>
+			</div>
+			<a href="@Url.Action("GaukBendruomenę", "Bendruomenė", new { id = bendruomenė.BendruomenėsId })" class="card-link hidden" target="_blank">Peržiūrėti</a>
+		</div>
+	}
+	</div>
+} 
+else
+{
+	<span>Šiuo metu nėra užregistruotų bendruomenių.</span>
+}
+
+@if (Model.Sąrašas.VisoPuslapių > 1)
+{
+	<div>
+		<nav aria-label="Page navigation">
+			<ul class="pagination justify-content-center">
+				@for (int i = 1; i <= Model.Sąrašas.VisoPuslapių; i++)
+				{
+					<li class="page-item @(i == Model.Sąrašas.DabartinisPuslapis ? "active" : "")">
+						<a class="page-link" href="/Bendruomenės/GaukSąrašą?puslapioNumeris=@i&puslapioDydis=@Model.Sąrašas.PuslapioDydis">@i</a>
+					</li>
+				}
+			</ul>
+		</nav>
+	</div>
+}
+
+<div class="modal fade" id="PridetiBendruomeneModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			@await Html.PartialAsync("_BendruomenėsĮvedimas", Model.ŽaidimoBendruomenė)
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	@if (User.Identity.IsAuthenticated)
+	{
+		<script>
+			function gaukŽaidimus() {
+				$.ajax({
+					url: '@Url.Action("GaukStaloŽaidimus", "Skelbimai")',
+					type: 'GET',
+					dataType: 'json',
+					success: function (data) {
+						var dropdown = $("#ZaidimuDropdown");
+						dropdown.empty();
+						dropdown.append($("<option>").text("-- Pasirinkite žaidimą --").val(0));
+						$.each(data, function (index, item) {
+							dropdown.append($("<option>").text(item.pavadinimas).val(item.žaidimoId));
+						});
+					},
+					error: function () {
+						alert("Klaida gaunant žaidimų sąrašą.");
+					}
+				});
+			}
+
+			gaukŽaidimus();
+		</script>
+	}
+	<script>
+		$(document).ready(function () {
+			document.querySelectorAll(".card").forEach(card => {
+				card.addEventListener("click", function () {
+					const linkElement = this.querySelector(".card-link");
+					if (linkElement) {
+						const linkUrl = linkElement.getAttribute("href");
+						if (linkUrl) {
+							window.open(linkUrl, "_blank");
+						}
+					}
+				});
+			});
+			
+			$(document).on("submit", "#PridetiBendruomeneModal form", function (event) {
+				event.preventDefault();
+				var form = $(this);
+
+				$.ajax({
+					url: form.attr("action"),
+					type: "POST",
+					data: form.serialize(),
+					success: function (response) {
+						var hasErrors = $(response).find(".field-validation-error").length > 0;
+
+						if (hasErrors) {
+							gaukŽaidimus();
+							$("#PridetiBendruomeneModal .modal-content").html(response);
+						} else {
+							$("#PridetiBendruomeneModal").modal("hide");
+							location.reload();
+						}
+					},
+					error: function (xhr, status, error) {
+						gaukŽaidimus();
+						$("#PridetiBendruomeneModal").html(xhr.responseText);
+					}
+				});
+			});
+		});
+	</script>
+}

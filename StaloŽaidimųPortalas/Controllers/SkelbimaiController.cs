@@ -26,7 +26,7 @@
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> GaukSkelbimus(int puslapioNumeris = 1, int puslapioDydis = 2)
+		public async Task<IActionResult> GaukSkelbimus(int puslapioNumeris = 1, int puslapioDydis = 10)
 		{
 			var vartotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 			var visoSkelbimų = await _dbContext.Skelbimai.CountAsync();
@@ -116,7 +116,7 @@
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> GaukNaudotojoSkelbimus(int puslapioNumeris = 1, int puslapioDydis = 2)
+		public async Task<IActionResult> GaukNaudotojoSkelbimus(int puslapioNumeris = 1, int puslapioDydis = 10)
 		{
 			var vartotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 			var visoSkelbimų = await _dbContext.Skelbimai.Where(m => m.NaudotojoId == vartotojoId).CountAsync();
@@ -185,7 +185,7 @@
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> GaukSkelbimusKaipPartnerio(int puslapioNumeris = 1, int puslapioDydis = 2)
+		public async Task<IActionResult> GaukSkelbimusKaipPartnerio(int puslapioNumeris = 1, int puslapioDydis = 10)
 		{
 			var vartotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 			var priregistruotiSkelbimai = await _dbContext.SkelbimųNariai.Where(m => m.NaudotojoId == vartotojoId).Select(m => m.SkelbimoId).ToListAsync();

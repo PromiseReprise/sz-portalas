@@ -21,7 +21,7 @@
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> GaukSąrašą(int puslapioNumeris = 1, int puslapioDydis = 2)
+		public async Task<IActionResult> GaukSąrašą(int puslapioNumeris = 1, int puslapioDydis = 10)
 		{
 			var visoŽaidimų = await _dbContext.StaloŽaidimai.CountAsync();
 

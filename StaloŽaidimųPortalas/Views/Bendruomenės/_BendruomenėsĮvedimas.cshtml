@@ -1,0 +1,37 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels.Bendruomenės
+
+@model Bendruomenės.Bendruomenė
+
+<div class="modal-header">
+	<h5 class="modal-title" id="exampleModalLabel">Patalpinti skelbimą</h5>
+	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+	@using (Html.BeginForm("PridėkBendruomenę", "Bendruomenės"))
+	{
+		@Html.ValidationSummary(true)
+		<div class="modal-body">
+			<div class="form-group">
+				@Html.LabelFor(m => m.Pavadinimas)
+				@Html.EditorFor(m => m.Pavadinimas, new { htmlAttributes = new { @class = "bendruomenės-pavadinimas-input form-control" } })
+				@Html.ValidationMessageFor(m => m.Pavadinimas, "", new { @class = "text-danger mb-2" })
+			</div>
+			<br />
+			<div class="form-group">
+				@Html.LabelFor(m => m.ŽaidimoPavadinimas)
+				@Html.DropDownListFor(m => m.ŽaidimoId, Enumerable.Empty<SelectListItem>(), "-- Pasirinkite žaidimą --", new { @class = "form-control", id = "ZaidimuDropdown" })
+				@Html.ValidationMessageFor(m => m.ŽaidimoId, "", new { @class = "text-danger mb-2" })
+			</div>
+			<br />
+			<div class="form-group">
+				@Html.LabelFor(m => m.Aprašymas)
+				@Html.TextAreaFor(m => m.Aprašymas, new { @class = "bendruomenės-aprašymas-input form-control" })
+				@Html.ValidationMessageFor(m => m.Aprašymas, "", new { @class = "text-danger mb-2" })
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="submit" class="btn btn-primary patalpinti-bendruomenę">Patalpinti</button>
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Uždaryti</button>
+		</div>
+	}
+</div>
