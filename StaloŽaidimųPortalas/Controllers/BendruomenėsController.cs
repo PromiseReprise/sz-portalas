@@ -7,7 +7,7 @@
 	using StaloŽaidimųPortalas.Data;
 	using StaloŽaidimųPortalas.Models.Entities;
 	using StaloŽaidimųPortalas.Models.ViewModels.Bendruomenės;
-	using System.ComponentModel.DataAnnotations;
+	using System.Security.Claims;
 
 	public class BendruomenėsController : Controller
 	{
@@ -146,10 +146,29 @@
 			var bendruomenėsInformacija = await _dbContext.Bendruomenė.Where(m => m.BendruomenėsId == id).FirstAsync();
 			var visoĮrašų = await _dbContext.BendruomenėsĮrašas.Where(m => m.BendruomenėsId == id).CountAsync();
 
+			var naudotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+			var bendruomenėsNariai = await _dbContext.BendruomenėsNarys.Where(m => m.BendruomenėsId == id && m.ArAktyvus == true && m.NaudotojoId == naudotojoId).FirstOrDefaultAsync();
+
+			var arNarys = false;
+			var arAdministratorius = false;
+
+			var bendruomenėsŽaidimas = await _dbContext.StaloŽaidimai.Where(m => m.ŽaidimoId == bendruomenėsInformacija.ŽaidimoId).FirstOrDefaultAsync();
+
+			if (bendruomenėsNariai != null)
+			{
+				arNarys = true;
+
+				if (bendruomenėsNariai.ArAdministratorius == true) arAdministratorius = true;
+			}
+
 			var sąrašas = new KonkretiBendruomenė
 			{
 				BendruomenėsId = id,
 				BendruomenėsPavadinimas = bendruomenėsInformacija.Pavadinimas,
+				BendruomenėsŽaidimas = bendruomenėsŽaidimas.Pavadinimas,
+				NaudotojoId = naudotojoId,
+				ArBendruomenėsNarys = arNarys,
+				ArBendruomenėsAdministratorius = arAdministratorius,
 				Įrašai = new KonkretiBendruomenė.BendruomenėsĮrašai { }
 			};
 
@@ -218,6 +237,7 @@
 			return View("Bendruomenė", sąrašas);
 		}
 
+		[Authorize]
 		[HttpPost]
 		public async Task<IActionResult> PridėkBendruomenėsĮraša(KonkretiBendruomenė.Įrašas patalpinamasĮrašas)
 		{
@@ -235,6 +255,149 @@
 			}
 
 			return PartialView("_BendruomenėsĮrašoĮvedimas", patalpinamasĮrašas);
+		}
+
+		[Authorize]
+		[HttpPost]
+		public async Task<IActionResult> PridėkNarį(int bendruomenėsId, string naudotojoId)
+		{
+			var bendruomenė = await _dbContext.Bendruomenė.FindAsync(bendruomenėsId);
+			var vartotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+			if (bendruomenė != null)
+			{
+				if (vartotojoId == naudotojoId)
+				{
+					var arYraToksNarys = await _dbContext.BendruomenėsNarys.Where(m => m.BendruomenėsId == bendruomenėsId && m.NaudotojoId == naudotojoId).FirstOrDefaultAsync();
+
+					if (arYraToksNarys != null)
+					{
+						arYraToksNarys.ArAktyvus = true;
+
+						_dbContext.BendruomenėsNarys.Update(arYraToksNarys);
+						await _dbContext.SaveChangesAsync();
+					}
+					else
+					{
+						var bendruomenėsNarys = new BendruomenėsNarys
+						{
+							BendruomenėsId = bendruomenėsId,
+							NaudotojoId = vartotojoId,
+							ArAdministratorius = false,
+							ArAktyvus = true
+						};
+
+						_dbContext.BendruomenėsNarys.Add(bendruomenėsNarys);
+						await _dbContext.SaveChangesAsync();
+					}
+
+					return Ok();
+				}
+				else
+				{
+					Forbid();
+				}
+			}
+
+			return NotFound();
+		}
+
+		[Authorize]
+		[HttpPost]
+		public async Task<IActionResult> AtšaukNarį(int bendruomenėsId, string naudotojoId)
+		{
+			var bendruomenėsNarys = await _dbContext.BendruomenėsNarys.Where(m => m.BendruomenėsId == bendruomenėsId && m.NaudotojoId == naudotojoId && m.ArAktyvus == true).FirstOrDefaultAsync();
+			var vartotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+			if (bendruomenėsNarys != null)
+			{
+				if (vartotojoId == naudotojoId)
+				{
+					bendruomenėsNarys.ArAktyvus = false;
+
+					_dbContext.BendruomenėsNarys.Update(bendruomenėsNarys);
+					await _dbContext.SaveChangesAsync();
+
+					return Ok();
+				}
+				else
+				{
+					Forbid();
+				}
+			}
+
+			return NotFound();
+		}
+
+		[Authorize]
+		[HttpGet]
+		public async Task<IActionResult> BendruomenėsRedagavimas(int bendruomenėsId, string naudotojoId)
+		{
+			var arNaudotojasAdministratorius = await _dbContext.BendruomenėsNarys.Where(m => m.BendruomenėsId == bendruomenėsId && m.NaudotojoId == naudotojoId && m.ArAdministratorius == true).FirstOrDefaultAsync();
+
+			if (arNaudotojasAdministratorius == null) return Forbid();
+
+			var bendruomenėsDuomenys = await _dbContext.Bendruomenė.Where(m => m.BendruomenėsId == bendruomenėsId).FirstOrDefaultAsync();
+
+			var bendruomenė = new Bendruomenės.Bendruomenė
+			{
+				BendruomenėsId = bendruomenėsDuomenys.BendruomenėsId,
+				ŽaidimoId = bendruomenėsDuomenys.ŽaidimoId,
+				Pavadinimas = bendruomenėsDuomenys.Pavadinimas,
+				Aprašymas = bendruomenėsDuomenys.Aprašymas
+			};
+
+			return View("BendruomenėsRedagavimas", bendruomenė);
+		}
+
+		[Authorize]
+		[HttpPost]
+		public async Task<IActionResult> RedaguokBendruomenę(Bendruomenės.Bendruomenė redaguojamaBendruomenė)
+		{
+			if (ModelState.IsValid)
+			{
+				var dabartinisUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+				var bendruomenė = _dbContext.Bendruomenė.FirstOrDefault(m => m.BendruomenėsId == redaguojamaBendruomenė.BendruomenėsId);
+
+				if (bendruomenė != null)
+				{
+					bendruomenė.Pavadinimas = redaguojamaBendruomenė.Pavadinimas;
+					bendruomenė.NaudotojoId = dabartinisUserId;
+					bendruomenė.ŽaidimoId = redaguojamaBendruomenė.ŽaidimoId;
+					bendruomenė.Aprašymas = redaguojamaBendruomenė.Aprašymas;
+
+					await _dbContext.SaveChangesAsync();
+
+					return RedirectToAction(nameof(GaukBendruomenėsĮrašus), new { id = redaguojamaBendruomenė.BendruomenėsId });
+				}
+			}
+
+			return View("BendruomenėsRedagavimas", redaguojamaBendruomenė);
+		}
+
+		[Authorize]
+		[HttpPost]
+		public async Task<IActionResult> PašalinkĮrašą(int įrašoId, string naudotojoId)
+		{
+			var įrašas = await _dbContext.BendruomenėsĮrašas.FindAsync(įrašoId);
+			var vartotojoId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+			if (įrašas != null)
+			{
+				if (vartotojoId == naudotojoId)
+				{
+					_dbContext.BendruomenėsĮrašas.Remove(įrašas);
+					await _dbContext.SaveChangesAsync();
+
+					return Ok();
+				}
+				else
+				{
+					Forbid();
+				}
+			}
+
+			return NotFound();
 		}
 	}
 }

@@ -8,6 +8,14 @@
 
 		public string BendruomenėsPavadinimas { get; set; }
 
+		public string BendruomenėsŽaidimas {  get; set; }
+
+		public string NaudotojoId { get; set; }
+
+		public bool ArBendruomenėsNarys {  get; set; }
+
+		public bool ArBendruomenėsAdministratorius { get; set; }
+
 		public BendruomenėsĮrašai Įrašai { get; set; }
 
 		public class BendruomenėsĮrašai

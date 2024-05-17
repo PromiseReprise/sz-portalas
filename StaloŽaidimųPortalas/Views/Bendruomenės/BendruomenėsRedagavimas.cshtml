@@ -1,0 +1,68 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels.Bendruomenės
+@using Microsoft.AspNetCore.Authorization
+
+@model Bendruomenės.Bendruomenė
+
+@{
+	ViewData["Title"] = "Bendruomenės redagavimas";
+}
+
+<div class="container">
+	<div class="row">
+		<h1>Bendruomenės redagavimas</h1>
+		<div class="col-sm-4">
+			@using (Html.BeginForm("RedaguokBendruomenę", "Bendruomenės"))
+			{
+				@Html.ValidationSummary(true)
+				@Html.HiddenFor(m => m.BendruomenėsId)
+				@Html.HiddenFor(m => m.ŽaidimoId, new { @class = "redaguojamo-žaidimo-id" })
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.Pavadinimas, new { @class = "form-label" })
+					@Html.EditorFor(m => m.Pavadinimas, new { htmlAttributes = new { @class = "form-control" } })
+					@Html.ValidationMessageFor(m => m.Pavadinimas, "", new { @class = "text-danger mb-2" })
+				</div>
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.ŽaidimoPavadinimas, new { @class = "form-label" })
+					@Html.DropDownListFor(m => m.ŽaidimoId, Enumerable.Empty<SelectListItem>(), "-- Pasirinkite žaidimą --", new { @class = "form-control", id = "ZaidimuDropdown" })
+					@Html.ValidationMessageFor(m => m.ŽaidimoId, "", new { @class = "text-danger mb-2" })
+				</div>
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.Aprašymas, new { @class = "form-label" })
+					@Html.EditorFor(m => m.Aprašymas, new { htmlAttributes = new { @class = "form-control" } })
+					@Html.ValidationMessageFor(m => m.Aprašymas, "", new { @class = "text-danger mb-2" })
+				</div>
+				<button type="submit" class="btn btn-primary">Redaguoti</button>
+			}
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	@if (User.Identity.IsAuthenticated)
+	{
+		<script>
+			function gaukŽaidimus() {
+				$.ajax({
+					url: '@Url.Action("GaukStaloŽaidimus", "Skelbimai")',
+					type: 'GET',
+					dataType: 'json',
+					success: function (data) {
+						var dropdown = $("#ZaidimuDropdown");
+						dropdown.empty();
+						$.each(data, function (index, item) {
+							dropdown.append($("<option>").text(item.pavadinimas).val(item.žaidimoId));
+						});
+
+						var pasirinktasŽaidimas = $(".redaguojamo-žaidimo-id").val();
+						dropdown.val(pasirinktasŽaidimas);
+					},
+					error: function () {
+						alert("Klaida gaunant žaidimų sąrašą.");
+					}
+				});
+			}
+
+			gaukŽaidimus();
+		</script>
+	}
+}

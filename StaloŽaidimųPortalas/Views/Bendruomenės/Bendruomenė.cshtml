@@ -11,55 +11,99 @@
 	.siauras {
 		width: 20%;
 	}
+
+	.ikona {
+		width: 5%;
+	}
+
+	.raudonas-x {
+		color: darkred;
+		text-decoration: none;
+	}
+
+	.raudonas-x:hover {
+		font-weight: bold;
+		color: red;
+	}
 </style>
 
 <div class="container">
 	<div class="row">
-		<div class="col-sm-9">
-			@if (Model.BendruomenėsPavadinimas != null)
+		<div class="col-sm-6">
+			@if (Model.BendruomenėsPavadinimas != null && Model.BendruomenėsŽaidimas != null)
 			{
-				<h3>@Model.BendruomenėsPavadinimas</h3>
+				<h3>@Model.BendruomenėsPavadinimas - @Model.BendruomenėsŽaidimas</h3>
+			}
+
+			@if (Model.ArBendruomenėsAdministratorius)
+			{
+				<span>Jūs administratorius</span>
 			}
 		</div>
 		@if (User.Identity.IsAuthenticated)
 		{
-			<div class="col-sm-3 float-right">
-				<button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#PridetiBendruomenesIrasaModal" onclick="perduokId(@Model.BendruomenėsId)">Pridėti įrašą</button>
-			</div>
+			if (Model.ArBendruomenėsNarys)
+			{
+				<div class="col-sm-6 float-right">
+					<div class="float-right">
+						<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#PridetiBendruomenesIrasaModal" onclick="perduokId(@Model.BendruomenėsId)">Pridėti įrašą</button>
+						@if (!Model.ArBendruomenėsAdministratorius)
+						{
+							<button class="btn btn-danger" onclick="atšaukNarį(@Model.BendruomenėsId, '@Model.NaudotojoId', '@Model.BendruomenėsPavadinimas')">Atšaukti narystę</button>
+						}
+						else
+						{
+							<button type="button" class="btn btn-warning" onclick="location.href='@Url.Action("BendruomenėsRedagavimas", "Bendruomenės", new { bendruomenėsId = Model.BendruomenėsId, naudotojoId = Model.NaudotojoId})'">Redaguoti bendruomenę</button>
+						}
+					</div>
+				</div>
+			}
+			else
+			{
+				<div class="col-sm-6 float-right">
+					<button class="btn btn-warning float-right" onclick="priskirkNarį(@Model.BendruomenėsId, '@Model.NaudotojoId', '@Model.BendruomenėsPavadinimas')">Tapti bendruomenės nariu</button>
+				</div>
+			}
 		}
 	</div>
 </div>
 
 <br />
-
-<div class="pagination">
-	<table class="table">
-		<thead class="centruok-tekstą">
-			<tr>
-				<th></th>
-				<th class="siauras">Autorius</th>
-			</tr>
-		</thead>
-		<tbody>
-			@if (Model.Įrašai.Įrašai != null && Model.Įrašai.Įrašai.Any())
-			{
+@if (Model.Įrašai.Įrašai != null && Model.Įrašai.Įrašai.Any())
+{
+	<div class="pagination">
+		<table class="table">
+			<thead class="centruok-tekstą">
+				<tr>
+					<th></th>
+					<th class="siauras">Autorius</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
 				@foreach (var įrašas in Model.Įrašai.Įrašai)
 				{
 					<tr>
 						<td>@įrašas.Tekstas</td>
 						<td class="siauras centruok-tekstą">@įrašas.Autorius</td>
+						@if (įrašas.Autorius == User.Identity.Name && Model.ArBendruomenėsNarys)
+						{
+							<td class="ikona"><button class="btn raudonas-x" onclick="šalintiĮrašą(@įrašas.ĮrašoId, '@įrašas.NaudotojoId')">X</button></td>
+						}
+						else
+						{
+							<td class="ikona"></td>
+						}
 					</tr>
 				}
-			}
-			else
-			{
-				<tr>
-					<td colspan="2" class="centruok-tekstą">Nėra įrašų</td>
-				</tr>
-			}
-		</tbody>
-	</table>
-</div>
+			</tbody>
+		</table>
+	</div>
+}
+else
+{
+	<div><span>Nėra įrašų</span></div>
+}
 
 @if (Model.Įrašai.VisoPuslapių > 1)
 {
@@ -89,6 +133,64 @@
 	<script>
 		function perduokId(id) {
 			$(".bendruomenės-id").val(id);
+		}
+
+		function šalintiĮrašą(įrašoId, naudotojoId) {
+			alert(įrašoId + "            " + naudotojoId);
+			if (confirm("Ar tikrai norite pašalinti savo įrašą?")) {
+				$.ajax({
+					url: "/Bendruomenės/PašalinkĮrašą/",
+					type: "POST",
+					data: {
+						įrašoId: įrašoId,
+						naudotojoId: naudotojoId
+					},
+					success: function () {
+						location.reload();
+					},
+					error: function () {
+						alert("Įvyko klaida, bandykite dar kartą.");
+					}
+				});
+			}
+		}
+
+		function priskirkNarį(bendruomenėsId, naudotojoId, bendruomenėsPavadinimas) {
+			if (confirm("Ar tikrai norite tapti: '" + bendruomenėsPavadinimas + "' nariu?")) {
+				$.ajax({
+					url: "/Bendruomenės/PridėkNarį/",
+					type: "POST",
+					data: {
+						bendruomenėsId: bendruomenėsId,
+						naudotojoId: naudotojoId
+					},
+					success: function () {
+						location.reload();
+					},
+					error: function () {
+						alert("Įvyko klaida, bandykite dar kartą.");
+					}
+				});
+			}
+		}
+
+		function atšaukNarį(bendruomenėsId, naudotojoId, bendruomenėsPavadinimas) {
+			if (confirm("Ar tikrai atšaukti būti: '" + bendruomenėsPavadinimas + "' nariu?")) {
+				$.ajax({
+					url: "/Bendruomenės/AtšaukNarį/",
+					type: "POST",
+					data: {
+						bendruomenėsId: bendruomenėsId,
+						naudotojoId: naudotojoId
+					},
+					success: function () {
+						location.reload();
+					},
+					error: function () {
+						alert("Įvyko klaida, bandykite dar kartą.");
+					}
+				});
+			}
 		}
 
 		$(document).ready(function () {
