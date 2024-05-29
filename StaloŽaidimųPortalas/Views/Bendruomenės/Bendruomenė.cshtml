@@ -13,12 +13,13 @@
 	}
 
 	.ikona {
-		width: 5%;
+		width: 3%;
 	}
 
 	.raudonas-x {
 		color: darkred;
 		text-decoration: none;
+		padding: 0;
 	}
 
 	.raudonas-x:hover {
@@ -86,7 +87,7 @@
 					<tr>
 						<td>@įrašas.Tekstas</td>
 						<td class="siauras centruok-tekstą">@įrašas.Autorius</td>
-						@if (įrašas.Autorius == User.Identity.Name && Model.ArBendruomenėsNarys)
+						@if (įrašas.Autorius == User.Identity.Name)
 						{
 							<td class="ikona"><button class="btn raudonas-x" onclick="šalintiĮrašą(@įrašas.ĮrašoId, '@įrašas.NaudotojoId')">X</button></td>
 						}
@@ -136,7 +137,6 @@ else
 		}
 
 		function šalintiĮrašą(įrašoId, naudotojoId) {
-			alert(įrašoId + "            " + naudotojoId);
 			if (confirm("Ar tikrai norite pašalinti savo įrašą?")) {
 				$.ajax({
 					url: "/Bendruomenės/PašalinkĮrašą/",

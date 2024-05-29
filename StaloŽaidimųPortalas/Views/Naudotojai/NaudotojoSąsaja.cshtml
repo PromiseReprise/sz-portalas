@@ -1,0 +1,74 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels.Naudotojai
+
+@model Naudotojas
+
+@{
+	ViewData["Title"] = "Naudotjo sąsaja";
+}
+
+<style>
+	.hidden {
+		display: none;
+	}
+</style>
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-4">
+			<h1>Profilis</h1>
+			@using (Html.BeginForm("RedaguokInformaciją", "Naudotojai"))
+			{
+				@Html.ValidationSummary(true)
+				@Html.Hidden("SuccessFlag", ViewBag.Success != null && ViewBag.Success == true ? "true" : "false")
+				@Html.HiddenFor(m => m.NaudotojoId, new { @class = "redaguojamo-žaidimo-id" })
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.Slapyvardis, new { @class = "form-label" })
+					@Html.EditorFor(m => m.Slapyvardis, new { htmlAttributes = new { @class = "form-control" } })
+					@Html.ValidationMessageFor(m => m.Slapyvardis, "", new { @class = "text-danger mb-2" })
+				</div>
+				<div class="mb-2 form-group">
+					@Html.LabelFor(m => m.KontaktinėInformacija, new { @class = "form-label" })
+					@Html.EditorFor(m => m.KontaktinėInformacija, new { htmlAttributes = new { @class = "form-control" } })
+				</div>
+				<div class="slaptažodžio-wrapper hidden">
+					<div class="mb-2 form-group">
+						@Html.LabelFor(m => m.Slaptažodis, new { @class = "form-label" })
+						@Html.EditorFor(m => m.Slaptažodis, new { htmlAttributes = new { @class = "form-control" } })
+						@Html.ValidationMessageFor(m => m.Slaptažodis, "", new { @class = "text-danger mb-2" })
+					</div>
+					<div class="mb-2 form-group">
+						@Html.LabelFor(m => m.SlaptažodžioPatvirtinimas, new { @class = "form-label" })
+						@Html.EditorFor(m => m.SlaptažodžioPatvirtinimas, new { htmlAttributes = new { @class = "form-control" } })
+						@Html.ValidationMessageFor(m => m.SlaptažodžioPatvirtinimas, "", new { @class = "text-danger mb-2" })
+					</div>
+				</div>
+				<button type="button" class="btn btn-secondary rodyk-nerodyk-slaptažodžio-įvestis">Keisti slaptažodį</button>
+				<button type="button" class="btn btn-secondary slėpti-slaptažodį hidden">Slėpti slaptažodį</button>
+				<button type="submit" class="btn btn-primary redaguoti-duomenis">Redaguoti</button>
+			}
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		$(document).ready(function () {
+			var successFlag = $("#SuccessFlag").val();
+			if (successFlag === "true") {
+				alert("Duomenys sėkmingai atnaujinti");
+			}
+
+			$(".rodyk-nerodyk-slaptažodžio-įvestis").on("click", function () {
+				$(".slaptažodžio-wrapper").removeClass("hidden");
+				$(".rodyk-nerodyk-slaptažodžio-įvestis").addClass("hidden");
+				$(".slėpti-slaptažodį").removeClass("hidden");
+			});
+
+			$(".slėpti-slaptažodį").on("click", function () {
+				$(".slaptažodžio-wrapper").addClass("hidden");
+				$(".rodyk-nerodyk-slaptažodžio-įvestis").removeClass("hidden");
+				$(".slėpti-slaptažodį").addClass("hidden");
+			});		
+		});
+	</script>
+}

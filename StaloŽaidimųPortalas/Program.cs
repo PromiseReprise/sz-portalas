@@ -8,6 +8,7 @@ using StaloŽaidimųPortalas.Data;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using StaloŽaidimųPortalas.Models.Entities;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,7 +22,7 @@ builder.Services.AddDbContext<AplikacijosDbContext>(options =>
 builder.Services.AddDbContext<AutentikacijosDbContext>(options => 
 	options.UseSqlServer(builder.Configuration.GetConnectionString("StaloŽaidimųPortalas")));
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AutentikacijosDbContext>();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AutentikacijosDbContext>();
 
 builder.Services.AddControllers(options =>
 {

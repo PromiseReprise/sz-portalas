@@ -1,0 +1,90 @@
+﻿@using StaloŽaidimųPortalas.Models.ViewModels
+
+@model NaudotojųSąrašas
+
+@{
+	ViewData["Title"] = "Admin";
+}
+
+<div class="container">
+	<div class="row">
+		<div class="col-sm-12">
+			<h3>Skirti administratoriaus rolę vartotojui:</h3>
+		</div>
+	</div>
+</div>
+
+<div class="pagination">
+	<table class="table">
+		<thead class="centruok-tekstą">
+			<tr>
+				<th>Slapyvardis</th>
+				<th>El. Paštas</th>
+				<th>Valdymas</th>
+			</tr>
+		</thead>
+		<tbody>
+			@if (Model.Naudotojai.NaudotojoDuomenys != null && Model.Naudotojai.NaudotojoDuomenys.Any())
+			{
+				@foreach (var naudotojas in Model.Naudotojai.NaudotojoDuomenys)
+				{
+					<tr>
+						<td>@naudotojas.Slapyvardis</td>
+						<td>@naudotojas.ElPaštas</td>
+						<td>
+							<button class="skirti-admin btn btn-outline-primary centruok-mygtuką" data-id="@naudotojas.Id" data-naudotojas="@naudotojas.Slapyvardis">
+								Skirti administratorium
+							</button>
+						</td>
+					</tr>
+				}
+			}
+			else
+			{
+				<tr>
+					<td colspan="5" class="centruok-tekstą">Nėra duomenų</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+@if (Model.Naudotojai.VisoPuslapių > 1)
+{
+	<div>
+		<nav aria-label="Page navigation">
+			<ul class="pagination justify-content-center">
+				@for (int i = 1; i <= Model.Naudotojai.VisoPuslapių; i++)
+				{
+					<li class="page-item @(i == Model.Naudotojai.DabartinisPuslapis ? "active" : "")">
+						<a class="page-link" href="/StaloŽaidimai/GaukSąrašą?puslapioNumeris=@i&puslapioDydis=@Model.Naudotojai.PuslapioDydis">@i</a>
+					</li>
+				}
+			</ul>
+		</nav>
+	</div>
+}
+
+@section Scripts {
+	<script>
+		$(document).ready(function () {
+			$(".skirti-admin").on("click", function () {
+				var id = $(this).data("id");
+				var naudotojas = $(this).data("naudotojas");
+
+				if (confirm("Ar tikrai norite skirti " + naudotojas + " administratorium?")) {
+					$.ajax({
+						url: "/Naudotojai/SkirkAdmin/" + id,
+						type: "POST",
+						success: function () {
+							location.reload();
+						},
+						error: function () {
+							alert("Įvyko klaida.");
+						}
+					});
+				}
+			});
+		});
+	</script>
+}

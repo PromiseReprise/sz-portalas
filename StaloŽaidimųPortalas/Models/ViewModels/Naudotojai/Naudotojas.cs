@@ -1,27 +1,25 @@
-﻿namespace StaloŽaidimųPortalas.Models.ViewModels.Naudotojai
-{
-	using System.ComponentModel;
-	using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
-	public class Registracija
+namespace StaloŽaidimųPortalas.Models.ViewModels.Naudotojai
+{
+	public class Naudotojas
 	{
-		[Required(ErrorMessage = "Privalomas laukas")]
-		[DataType(DataType.EmailAddress)]
-		[DisplayName("Elektroninio pašto adresas")]
-		[StringLength(256)]
-		public string ElPaštas { get; set; }
+		public string NaudotojoId { get; set; }
 
 		[Required(ErrorMessage = "Privalomas laukas")]
 		[DisplayName("Slapyvardis")]
 		[StringLength(256)]
 		public string Slapyvardis { get; set; }
 
-		[Required(ErrorMessage = "Privalomas laukas")]
+		[DisplayName("Kontaktinė informacija")]
+		[StringLength(450)]
+		public string KontaktinėInformacija { get; set; }
+
 		[DataType(DataType.Password)]
 		[DisplayName("Slaptažodis")]
 		public string Slaptažodis { get; set; }
 
-		[Required(ErrorMessage = "Privalomas laukas")]
 		[DataType(DataType.Password)]
 		[DisplayName("Pakartotinas slaptažodis")]
 		[Compare(nameof(Slaptažodis), ErrorMessage = "Abu slaptažodžiai turi sutapti!")]

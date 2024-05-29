@@ -8,7 +8,7 @@
 	using StaloŽaidimųPortalas.Models.Entities;
 	using StaloŽaidimųPortalas.Models.ViewModels;
 
-	[Authorize]
+	[Authorize(Roles = "SysAdmin, Admin")]
 	public class StaloŽaidimaiController : Controller
 	{
 		private readonly AplikacijosDbContext _dbContext;
